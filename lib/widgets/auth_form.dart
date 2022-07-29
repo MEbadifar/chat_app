@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 
 class AuthForm extends StatefulWidget {
-  const AuthForm({Key? key}) : super(key: key);
+  const AuthForm(
+    this.submitFn,
+    this.isLoading,
+  );
+
+  final bool isLoading;
+  final void Function(
+    String email,
+    String password,
+    String username,
+    bool isLogin,
+    BuildContext ctx,
+  ) submitFn;
 
   @override
   State<AuthForm> createState() => _AuthFormState();
@@ -9,20 +21,23 @@ class AuthForm extends StatefulWidget {
 
 class _AuthFormState extends State<AuthForm> {
   final _formKey = GlobalKey<FormState>();
-  var isLogin = true;
+  bool? _isLogin = true;
   String? _userEmail = '';
   String? _userName = '';
   String? _userPassword = '';
+
   void _trySubmit() {
     final isValid = _formKey.currentState!.validate();
     FocusScope.of(context).unfocus();
     if (isValid) {
       _formKey.currentState!.save();
-      print(_userEmail);
-      print(_userName);
-      print(_userPassword);
-      // Use those values tosent ourauth request to firebase..
-
+      widget.submitFn(
+        _userEmail!.trim(),
+        _userPassword!.trim(),
+        _userName!.trim(),
+        _isLogin!,
+        context,
+      );
     }
   }
 
@@ -55,7 +70,7 @@ class _AuthFormState extends State<AuthForm> {
                       _userEmail = value;
                     }),
                   ),
-                  if (!isLogin)
+                  if (!_isLogin!)
                     TextFormField(
                       key: const ValueKey('username'),
                       validator: (value) {
@@ -88,20 +103,23 @@ class _AuthFormState extends State<AuthForm> {
                   const SizedBox(
                     height: 12,
                   ),
-                  RaisedButton(
-                    onPressed: _trySubmit,
-                    child: Text(isLogin ? 'Login' : 'SignUp'),
-                  ),
-                  FlatButton(
-                      textColor: Theme.of(context).primaryColor,
-                      onPressed: () {
-                        setState(() {
-                          isLogin = !isLogin;
-                        });
-                      },
-                      child: Text(isLogin
-                          ? 'Create a new Account'
-                          : 'I already have an account'))
+                  if (widget.isLoading) CircularProgressIndicator(),
+                  if (!widget.isLoading)
+                    RaisedButton(
+                      onPressed: _trySubmit,
+                      child: Text(_isLogin! ? 'Login' : 'SignUp'),
+                    ),
+                  if (!widget.isLoading)
+                    FlatButton(
+                        textColor: Theme.of(context).primaryColor,
+                        onPressed: () {
+                          setState(() {
+                            _isLogin = !_isLogin!;
+                          });
+                        },
+                        child: Text(_isLogin!
+                            ? 'Create a new Account'
+                            : 'I already have an account'))
                 ],
               ),
             ),

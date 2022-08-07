@@ -1,14 +1,16 @@
 import 'dart:core';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
+import 'dart:io';
 
-import '../widgets/auth_form.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+import '../widgets/auth/auth_form.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
-
+  const AuthScreen();
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
@@ -20,10 +22,11 @@ class _AuthScreenState extends State<AuthScreen> {
     String email,
     String password,
     String username,
+    File image,
     bool isLogin,
     BuildContext ctx,
   ) async {
-    UserCredential authResult;
+    AuthResult authResult;
     try {
       setState(() {
         _isLoading = true;
@@ -39,17 +42,27 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
       }
-      await FirebaseFirestore.instance
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('user_image')
+          .child(authResult.user.uid + '.jpg');
+
+      await ref.putFile(image).onComplete;
+
+      final url=await ref.getDownloadURL();
+
+      await Firestore.instance
           .collection('users')
-          .doc(authResult.user!.uid)
-          .set({
+          .document(authResult.user.uid)
+          .setData({
         'username': username,
         'email': email,
+        'image_ulr':url,
       });
     } on PlatformException catch (err) {
       var message = 'An error occurred , please check your credentials!';
       if (err.message != null) {
-        message = err.message!;
+        message = err.message;
       }
       Scaffold.of(ctx).showSnackBar(
         SnackBar(

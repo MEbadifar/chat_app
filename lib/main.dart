@@ -1,9 +1,10 @@
-import 'package:chat_app/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_app/screens/auth_screen.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'widgets/auth_form.dart';
+import 'screens/auth_screen.dart';
+import 'screens/chat_screen.dart';
+import 'widgets/auth/auth_form.dart';
 
 void main() {
   // WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +15,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp();
 
   // This widget is the root of your application.
   @override
@@ -36,10 +37,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
+          stream: FirebaseAuth.instance.onAuthStateChanged,
           builder: (BuildContext ctx, usersnapshot) {
             if (usersnapshot.hasData) {
-              return const ChatScreen();
+              return ChatScreen();
             }
             return const AuthScreen();
           }),

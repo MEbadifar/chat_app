@@ -5,26 +5,27 @@ import 'package:flutter/material.dart';
 import 'message_bubble.dart';
 
 class Messages extends StatelessWidget {
-  const Messages();
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: (FirebaseAuth.instance.currentUser) as dynamic,
+      future: FirebaseAuth.instance.currentUser(),
       builder: (ctx, futureSnapshot) {
         if (futureSnapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(),
           );
         }
-
-        return StreamBuilder<QuerySnapshot>(
+        return StreamBuilder(
             stream: Firestore.instance
                 .collection('chat')
-                .orderBy('createdAt', descending: true)
+                .orderBy(
+                  'createdAt',
+                  descending: true,
+                )
                 .snapshots(),
-            builder: (context, chatSnapshot) {
+            builder: (ctx, chatSnapshot) {
               if (chatSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(),
                 );
               }
@@ -32,7 +33,7 @@ class Messages extends StatelessWidget {
               return ListView.builder(
                 reverse: true,
                 itemCount: chatDocs.length,
-                itemBuilder: (context, index) => MessageBubble(
+                itemBuilder: (ctx, index) => MessageBubble(
                   chatDocs[index]['text'],
                   chatDocs[index]['username'],
                   chatDocs[index]['userImage'],
